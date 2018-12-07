@@ -1,0 +1,626 @@
+int pushbutton = 4; //pushbutton pin number
+int buttonState = 0; //state of the pushbutton
+int x = 0; //index of users
+unsigned long t = 0; 
+int Dt = 30000; //time to set the users
+int y; //user turn
+int randomquestions; //random activity
+
+
+//LEDS!!!!!!!
+
+// NeoPixel Ring simple sketch (c) 2013 Shae Erisson
+// released under the GPLv3 license to match the rest of the AdaFruit NeoPixel library
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+#include <avr/power.h>
+#endif
+
+// Which pin on the Arduino is connected to the NeoPixels?
+// On a Trinket or Gemma we suggest changing this to 1
+#define PIN            6
+
+// How many NeoPixels are attached to the Arduino?
+#define NUMPIXELS      12
+
+// When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
+// Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
+// example for more information on possible values.
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+int delayval = 500; // delay for half a second
+
+
+//SPEAKER!!!!!!
+
+#include "Arduino.h"
+#include "SoftwareSerial.h"
+#include "DFRobotDFPlayerMini.h"
+
+SoftwareSerial mySoftwareSerial(10, 11); // RX, TX
+DFRobotDFPlayerMini myDFPlayer;
+void printDetail(uint8_t type, int value);
+
+
+void setup() {
+
+  //LEDS!!!!
+
+  // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
+#if defined (__AVR_ATtiny85__)
+  if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
+#endif
+  // End of trinket special code
+
+
+  //SPEAKER!!!!!!
+
+  {
+    mySoftwareSerial.begin(9600);
+    Serial.begin(9600);
+
+    if (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
+      while (true) {
+        delay(0); // Code to compatible with ESP8266 watch dog.
+      }
+    }
+
+    myDFPlayer.volume(30);  //Set volume value. From 0 to 30
+  }
+
+  //__________
+
+  pixels.begin(); // This initializes the NeoPixel library.
+
+  // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
+  pixels.setPixelColor(0, pixels.Color(255, 255, 0)); // Moderately bright green color.
+  pixels.show(); // This sends the updated pixel color to the hardware.
+
+  pixels.setPixelColor(1, pixels.Color(255, 115, 0)); // Moderately bright green color.
+  pixels.show(); // This sends the updated pixel color to the hardware.
+
+  pixels.setPixelColor(2, pixels.Color(255, 0, 0));
+  pixels.show();
+
+  pixels.setPixelColor(3, pixels.Color(255, 0, 115));
+  pixels.show();
+
+  pixels.setPixelColor(4, pixels.Color(255, 0, 255));
+  pixels.show();
+
+  pixels.setPixelColor(5, pixels.Color(115, 0, 255));
+  pixels.show();
+
+  pixels.setPixelColor(6, pixels.Color(0, 0, 255));
+  pixels.show();
+
+  pixels.setPixelColor(7, pixels.Color(0, 115, 255));
+  pixels.show();
+
+  pixels.setPixelColor(8, pixels.Color(0, 255, 255));
+  pixels.show();
+
+  pixels.setPixelColor(9, pixels.Color(0, 255, 115));
+  pixels.show();
+
+  pixels.setPixelColor(10, pixels.Color(0, 255, 0));
+  pixels.show();
+
+  pixels.setPixelColor(11, pixels.Color(115, 255, 0));
+  pixels.show();
+
+  myDFPlayer.play(01); //welcoming audio
+  delay (3500); //the length of the audio
+  myDFPlayer.play(02); //first indications 
+  delay (6500);
+
+  pinMode(4, INPUT); // declare the pushbutton as an input
+
+  randomSeed(analogRead(0));
+
+
+  Serial.println ("Enter users!"); //indications on the screan
+
+
+  int lastState = LOW; 
+  t = millis ();
+  x = 0;
+  while (millis() - t < Dt) { // while the time is less than 30s
+    buttonState = digitalRead(pushbutton); // read the estate of the pushbutton
+
+    if (buttonState == LOW && lastState == HIGH) { // if the pushbutton is prest once
+      x = x + 1; // add a user
+      x = constrain (x, 0, 6); //the game has a limit of 6 players
+      Serial.print("USER"); // used to give instructions to the players
+      Serial.print(x); // used to give instructions to the players also x it's the summary of the players
+      Serial.print (":");
+
+      if (x == 1) { //when you are setting the first user
+        Serial.println("YOU ARE RED "); //shows the colour of the user
+        myDFPlayer.play(03); // audio saying the number of user and colour
+
+        for (int i = 0; i < 12; i++) {
+          pixels.setPixelColor(i, pixels.Color(255, 0, 0)); //the leds shows the colour of the user
+        }
+        pixels.show();
+        delay (5000); //the leds are on for 5 seconds
+
+        for (int i = 0; i < 12; i++) { //to turn the leds off
+          pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+        }
+        pixels.show();
+      }
+
+      if (x == 2) { //the same code as user number 1 with the user number 2
+        Serial.println("YOU ARE GREEN ");
+        myDFPlayer.play(04);
+
+        for (int i = 0; i < 12; i++) {
+          pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+        }
+        pixels.show();
+        delay (5000);
+
+        for (int i = 0; i < 12; i++) { 
+          pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+        }
+        pixels.show();
+      }
+
+      if (x == 3) { //the same code as user number 1 with the user number 3
+        Serial.println("YOU ARE BLUE ");
+        myDFPlayer.play(05);
+
+        for (int i = 0; i < 12; i++) {
+          pixels.setPixelColor(i, pixels.Color(0, 0, 255));
+        }
+        pixels.show();
+        delay (5000);
+
+        for (int i = 0; i < 12; i++) { 
+          pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+        }
+        pixels.show();
+      }
+
+      if (x == 4) { //the same code as user number 1 with the user number 4
+        Serial.println("YOU ARE PURPLE ");
+        myDFPlayer.play(06);
+
+        for (int i = 0; i < 12; i++) {
+          pixels.setPixelColor(i, pixels.Color(115, 0, 255));
+        }
+        pixels.show();
+        delay (5000);
+
+        for (int i = 0; i < 12; i++) { 
+          pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+        }
+        pixels.show();
+      }
+
+      if (x == 5) { //the same code as user number 1 with the user number 5
+        Serial.println("YOU ARE YELLOW ");
+        myDFPlayer.play(07);
+
+        for (int i = 0; i < 12; i++) {
+          pixels.setPixelColor(i, pixels.Color(255, 115, 0));
+        }
+        pixels.show();
+        delay (5000);
+
+        for (int i = 0; i < 12; i++) {
+          pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+        }
+        pixels.show();
+      }
+
+      if (x == 6) { //the same code as user number 1 with the user number 6
+        Serial.println("YOU ARE PINK ");
+        myDFPlayer.play(8);
+
+        for (int i = 0; i < 12; i++) {
+          pixels.setPixelColor(i, pixels.Color(255, 0, 115));
+        }
+        pixels.show();
+        delay (5000);
+
+        for (int i = 0; i < 12; i++) { 
+          pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+        }
+        pixels.show();
+
+        myDFPlayer.play(9);  //explanation of the limit of the users
+        delay (4500);
+      }
+    }
+    lastState = buttonState;
+  }
+
+  pixels.begin();
+
+  myDFPlayer.play(10); // explanation to follow the game
+  delay(6000);
+
+}
+
+void loop() {
+  buttonState = digitalRead(pushbutton); // read the estate of the pushbutton
+  if (buttonState == LOW) { // if the pushbutton is prest once
+    if (x == 2) { //when 2 users are playing
+      y = random(0, 1);
+      if (y == 0) { //USER 1
+
+        myDFPlayer.play(11); //audio saying that it is the turn of the player 1
+
+        pixels.setPixelColor(0, pixels.Color(255, 0, 0)); //corresponding led and colour of the user
+        pixels.setPixelColor(1, pixels.Color(255, 0, 0)); //corresponding led and colour of the user
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(0, pixels.Color(0, 0, 0)); //turn off the led
+        pixels.setPixelColor(1, pixels.Color(0, 0, 0)); //turn off the led
+        pixels.show();
+
+      }
+      if (y == 1) { //USER 2
+
+        myDFPlayer.play(12); //audio saying that it is the turn of the player 2
+
+        pixels.setPixelColor(6, pixels.Color(0, 255, 0));
+        pixels.setPixelColor(7, pixels.Color(0, 255, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(6, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(7, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+    }
+    if (x == 3) { //when 3 users are playing
+      y = random(0, 2);
+      if (y == 0) { //USER 1
+
+        myDFPlayer.play(11);
+
+        pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+        pixels.setPixelColor(1, pixels.Color(255, 0, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(1, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 1) { //USER 2
+
+        myDFPlayer.play(12);
+
+        pixels.setPixelColor(4, pixels.Color(0, 255, 0));
+        pixels.setPixelColor(5, pixels.Color(0, 255, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(4, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(5, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 2) { //USER 3
+
+        myDFPlayer.play(13);
+
+        pixels.setPixelColor(8, pixels.Color(0, 0, 255));
+        pixels.setPixelColor(9, pixels.Color(0, 0, 255));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(8, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(9, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+    }
+    if (x == 4) { //when 4 users are playing
+      y = random(0, 3);
+      if (y == 0) { //USER 1
+
+        myDFPlayer.play(11);
+
+        pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+        pixels.setPixelColor(1, pixels.Color(255, 0, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(1, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 1) { //USER 2
+
+        myDFPlayer.play(12);
+
+        pixels.setPixelColor(3, pixels.Color(0, 255, 0));
+        pixels.setPixelColor(4, pixels.Color(0, 255, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(3, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(4, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 2) { //USER 3
+
+        myDFPlayer.play(13);
+
+        pixels.setPixelColor(6, pixels.Color(0, 0, 255));
+        pixels.setPixelColor(7, pixels.Color(0, 0, 255));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(6, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(7, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 3) { //USER 4
+
+        myDFPlayer.play(14);
+
+        pixels.setPixelColor(9, pixels.Color(115, 0, 255));
+        pixels.setPixelColor(10, pixels.Color(115, 0, 255));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(9, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(10, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+    }
+    if (x == 5) { //when 5 users are playing
+      y = random(0, 4);
+      if (y == 0) { //USER 1
+
+        myDFPlayer.play(11);
+
+        pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+        pixels.setPixelColor(1, pixels.Color(255, 0, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(1, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 1) { //USER 2
+
+        myDFPlayer.play(12);
+
+        pixels.setPixelColor(3, pixels.Color(0, 255, 0));
+        pixels.setPixelColor(4, pixels.Color(0, 255, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(3, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(4, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 2) { // USER 3
+
+        myDFPlayer.play(13);
+
+        pixels.setPixelColor(5, pixels.Color(0, 0, 255));
+        pixels.setPixelColor(6, pixels.Color(0, 0, 255));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(5, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(6, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 3) { //USER 4
+
+        myDFPlayer.play(14);
+
+        pixels.setPixelColor(7, pixels.Color(115, 0, 255));
+        pixels.setPixelColor(8, pixels.Color(115, 0, 255));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(7, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(8, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 4) { //USER 5
+
+        myDFPlayer.play(15);
+
+        pixels.setPixelColor(10, pixels.Color(255, 115, 0));
+        pixels.setPixelColor(11, pixels.Color(255, 115, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(10, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(11, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+    }
+    if (x == 6) { //when 6 users are playing
+      y = random(0, 5);
+      if (y == 0) { //USER 1
+
+        myDFPlayer.play(11);
+
+        pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+        pixels.setPixelColor(1, pixels.Color(255, 0, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(1, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 1) { //USER 2
+
+        myDFPlayer.play(12);
+
+        pixels.setPixelColor(2, pixels.Color(0, 255, 0));
+        pixels.setPixelColor(3, pixels.Color(0, 255, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(2, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(3, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 2) { //USER 3
+
+        myDFPlayer.play(13);
+
+        pixels.setPixelColor(4, pixels.Color(0, 0, 255));
+        pixels.setPixelColor(5, pixels.Color(0, 0, 255));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(4, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(5, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 3) { //USER 4
+
+        myDFPlayer.play(14);
+
+        pixels.setPixelColor(6, pixels.Color(115, 0, 255));
+        pixels.setPixelColor(7, pixels.Color(115, 0, 255));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(6, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(7, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 4) { //USER 5
+
+        myDFPlayer.play(15);
+
+        pixels.setPixelColor(8, pixels.Color(255, 115, 0));
+        pixels.setPixelColor(9, pixels.Color(255, 115, 0));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(8, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(9, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      if (y == 5) { //USER 6
+
+        myDFPlayer.play(16);
+
+        pixels.setPixelColor(10, pixels.Color(255, 0, 115));
+        pixels.setPixelColor(11, pixels.Color(255, 0, 115));
+        pixels.show();
+        delay (5000);
+
+        pixels.setPixelColor(10, pixels.Color(0, 0, 0));
+        pixels.setPixelColor(11, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+    }
+
+    randomquestions = random (4); //the maximum of activities
+    digitalWrite(randomquestions, HIGH); //to read the value of the input
+
+    if (randomquestions == 0) { //when it is the turn of the first activity
+
+      Serial.println("Tell us a secret"); // used to give instructions to the players on the screan
+
+      myDFPlayer.play(17); //audio saying the activity
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) {
+        pixels.setPixelColor(i, pixels.Color(255, 115, 0)); //to turn on the leds with the corresponding colour
+        pixels.show();
+      }
+      delay (5000); //the leds are on for 5 seconds
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) { //turn off the leds
+        pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+      }
+      pixels.show();
+    }
+    if (randomquestions == 1) { //when it is the turn of the second activity
+
+      Serial.println("Drink a shot");
+
+      myDFPlayer.play(18);
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) {
+        pixels.setPixelColor(i, pixels.Color(255, 0, 0));
+        pixels.show();
+      }
+      delay (5000);
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) { 
+        pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+      }
+      pixels.show();
+    }
+    if (randomquestions == 2) { //when it is the turn of the third activity
+
+      Serial.println("Answer a personal question");
+
+      myDFPlayer.play(19);
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) {
+        pixels.setPixelColor(i, pixels.Color(255, 0, 255));
+        pixels.show();
+      }
+      delay (5000);
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) { 
+        pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+      }
+      pixels.show();
+    }
+    if (randomquestions == 3) { //when it is the turn of the fourth activity
+
+      Serial.println("Drink 2 shots");
+
+      myDFPlayer.play(20);
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) {
+        pixels.setPixelColor(i, pixels.Color(0, 0, 255));
+        pixels.show();
+      }
+      delay (5000);
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) { 
+        pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+      }
+      pixels.show();
+    }
+    if (randomquestions == 4) { //when it is the turn of the fifth activity
+
+      Serial.println("Take off a piece of your clothes");
+
+      myDFPlayer.play(21);
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) {
+        pixels.setPixelColor(i, pixels.Color(0 , 255, 0));
+        pixels.show();
+      }
+      delay (5000);
+
+      pixels.begin();
+      for (int i = 0; i < 12; i++) { 
+        pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+      }
+      pixels.show();
+    }
+  }
+}
